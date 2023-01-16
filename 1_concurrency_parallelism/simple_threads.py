@@ -207,16 +207,28 @@ print('*** DONE! ***')
 # how long it's willing to wait if that much time passes without the thread
 # ending, it'll be able to go onto another thread.
 
+# As we create each thread (and launch our function in it), we store our
+# thread in all_threads. Then, after our threads have launched, we
+# repeatedly iterate through all_threads. With each iteration over
+# all_threads, we give one_thread the chance to say "Yes, I'm done!".
+# We do that with "join" (one_thread.join()). But we don't want to give
+# the thread forever to tell us it's done, so we give it 0.1 seconds
+# to tell us that. If the thread is done, then we remove it from all_threads.
+# If the thread is NOT done, we go onto the next one. When all_threads is
+# empty, we stop iterating over it.
+
 import threading
 import time
 import random
 
 
+# Define function
 def hello(n):
     time.sleep(random.randint(0, 3))
     print(f'{n} Hello!\n', end='')
 
 
+#  Launch thread
 all_threads = list()
 for i in range(5):
     t = threading.Thread(target=hello, args=(i,))
@@ -227,11 +239,13 @@ for i in range(5):
 # a chance to be joined. When it's joined, we remove the thread from
 # the all_threads list
 
+# Wait for each thread to finish
 while all_threads:
     for one_thread in all_threads:
-        one_thread.join(0.1)  # Wait 0.1 seconds for the thread to end
+        one_thread.join(0.1)  # Wait up to 0.1 seconds for the thread to end
 
-        if one_thread.is_alive():
+        if not one_thread.is_alive():  # if the thread died, then let's remove it from the list
+            print(f'\tRemoved {one_thread.name}')
             all_threads.remove(one_thread)
 
 # By the time this line is reached and guaranteed that all of the threads
